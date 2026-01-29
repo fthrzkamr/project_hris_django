@@ -9,7 +9,7 @@ class EmployeeAdmin(admin.ModelAdmin):
         'company',
         'department',
         'position',
-        'role',
+        'branch',
         'is_active',
     )
 
@@ -17,7 +17,7 @@ class EmployeeAdmin(admin.ModelAdmin):
         'company',
         'department',
         'position',
-        'role',
+        'branch',
         'is_active',
     )
 
@@ -32,7 +32,7 @@ class EmployeeAdmin(admin.ModelAdmin):
         'company',
         'department',
         'position',
-        'role',
+        'branch',
     )
 
     fieldsets = (
@@ -49,7 +49,7 @@ class EmployeeAdmin(admin.ModelAdmin):
                 'company',
                 'department',
                 'position',
-                'role',
+                'branch',
             )
         }),
         ('Status Kerja', {
@@ -60,6 +60,6 @@ class EmployeeAdmin(admin.ModelAdmin):
         }),
         ('Akun Login (Opsional)', {
             'fields': ('user',),
-            'description': 'Isi hanya jika employee membutuhkan akses login'
+            'description': 'Link dengan User untuk akses login'
         }),
     )
