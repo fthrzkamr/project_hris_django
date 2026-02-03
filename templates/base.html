@@ -1,0 +1,132 @@
+{% load static %}
+<!doctype html>
+<html lang="en" data-theme="hris">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}HRIS - Dua Farma Groups{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/output.css' %}?v={{ request.GET.urlencode }}{% now 'U' %}">
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body class="bg-base-200">
+    {% include 'components/navbar.html' %}
+
+    <!-- Backdrop for mobile sidebar -->
+    <div id="backdrop" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
+
+    <!-- Main Layout -->
+    <div class="flex pt-14 sm:pt-16">
+      {% include 'components/sidebar.html' %}
+
+      <!-- Main Content -->
+      <main id="mainContent" class="flex-1 ml-0 lg:ml-56 transition-all duration-300 ease-in-out">
+        {% block content %}
+        {% endblock %}
+      </main>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const menuIcon = document.getElementById('menuIcon');
+        const closeIcon = document.getElementById('closeIcon');
+        const backdrop = document.getElementById('backdrop');
+        const sidebarTexts = document.querySelectorAll('.sidebar-text');
+        const sectionTitles = document.querySelectorAll('[id^="sectionTitle"]');
+        let isSidebarOpen = true;
+        let isMobile = window.innerWidth < 1024;
+
+        function updateSidebarState() {
+          isMobile = window.innerWidth < 1024;
+          
+            if (isMobile) {
+            // Mobile: sidebar hidden by default
+            if (isSidebarOpen) {
+              // Show sidebar as overlay
+              sidebar.style.transform = 'translateX(0)';
+              sidebar.style.width = '14rem';
+              backdrop.classList.remove('hidden');
+              sidebarTexts.forEach(text => text.classList.remove('hidden'));
+              sectionTitles.forEach(title => title.classList.remove('hidden'));
+              menuIcon.classList.add('hidden');
+              closeIcon.classList.remove('hidden');
+              mainContent.style.marginLeft = '0';
+            } else {
+              // Hide sidebar completely
+              sidebar.style.transform = 'translateX(-100%)';
+              sidebar.style.width = '14rem';
+              backdrop.classList.add('hidden');
+              menuIcon.classList.remove('hidden');
+              closeIcon.classList.add('hidden');
+              mainContent.style.marginLeft = '0';
+            }
+          } else {
+            // Desktop: normal toggle behavior
+            sidebar.style.transform = 'translateX(0)';
+            backdrop.classList.add('hidden');
+            
+            if (isSidebarOpen) {
+              // Full sidebar
+              sidebar.style.width = '14rem';
+              mainContent.style.marginLeft = '14rem';
+              sidebarTexts.forEach(text => text.classList.remove('hidden'));
+              sectionTitles.forEach(title => title.classList.remove('hidden'));
+              menuIcon.classList.add('hidden');
+              closeIcon.classList.remove('hidden');
+            } else {
+              // Mini sidebar
+              sidebar.style.width = '5rem';
+              mainContent.style.marginLeft = '5rem';
+              sidebarTexts.forEach(text => text.classList.add('hidden'));
+              sectionTitles.forEach(title => title.classList.add('hidden'));
+              menuIcon.classList.remove('hidden');
+              closeIcon.classList.add('hidden');
+            }
+          }
+        }
+
+        sidebarToggle.addEventListener('click', function() {
+          isSidebarOpen = !isSidebarOpen;
+          updateSidebarState();
+        });
+
+        // Close sidebar when clicking backdrop (mobile only)
+        backdrop.addEventListener('click', function() {
+          if (isMobile) {
+            isSidebarOpen = false;
+            updateSidebarState();
+          }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+          const wasMobile = isMobile;
+          isMobile = window.innerWidth < 1024;
+          
+          // Reset state when switching between mobile and desktop
+          if (wasMobile !== isMobile) {
+            if (isMobile) {
+              // Switching to mobile - close sidebar
+              isSidebarOpen = false;
+            } else {
+              // Switching to desktop - open sidebar
+              isSidebarOpen = true;
+            }
+          }
+          
+          updateSidebarState();
+        });
+
+        // Initial state
+        if (isMobile) {
+          isSidebarOpen = false;
+        }
+        updateSidebarState();
+      });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>
