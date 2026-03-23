@@ -1,0 +1,13 @@
+{
+  "name": "project_hris_django",
+  "version": "1.0.0",
+  "description": "HRIS Dua Farma Groups",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify",
+    "watch:css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch"
+  },
+  "devDependencies": {
+    "daisyui": "^5.5.16",
+    "tailwindcss": "^3.4.19"
+  }
+}

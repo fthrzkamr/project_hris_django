@@ -3,8 +3,6 @@ from .models import Position
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'level')
-    list_filter = ('level',)
+    list_display  = ('name', 'is_active')
+    list_filter   = ('is_active',)
     search_fields = ('name',)
-
-
