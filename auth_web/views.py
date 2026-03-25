@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.contrib import messages
 
@@ -8,7 +8,8 @@ def login_view(request):
         npp = request.POST.get('npp')
         password = request.POST.get('password')
 
-        user = authenticate(request, npp=npp, password=password)
+        # authenticate pakai username (NPP adalah username)
+        user = authenticate(request, username=npp, password=password)
 
         if user is not None:
             login(request, user)
@@ -30,3 +31,9 @@ def login_view(request):
         messages.error(request, 'NPP atau password salah')
 
     return render(request, 'auth/login.html')
+
+
+def logout_view(request):
+    logout(request)
+    messages.success(request, 'Berhasil logout')
+    return redirect('/login/')

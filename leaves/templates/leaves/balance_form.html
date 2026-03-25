@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Saldo Cuti — HRIS Dua Farma{% endblock %}
+
+{% block content %}
+<div class="p-6 sm:p-8" style="font-family:'Poppins',sans-serif;">
+  
+  <div style="margin-bottom:24px;">
+    <h1 style="font-size:20px;font-weight:700;color:#1e293b;margin:0;">{{ action }} Saldo Cuti</h1>
+    <p style="font-size:13px;color:#64748b;margin:2px 0 0 0;">Pengaturan kuota cuti tahunan karyawan</p>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 max-w-2xl">
+    <form method="post" action="" style="display:flex;flex-direction:column;gap:16px;">
+      {% csrf_token %}
+      
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Karyawan <span style="color:#ef4444;">*</span></label>
+        {% if action == 'Tambah' %}
+        <select name="employee_id" required style="width:100%;padding:10px 14px;font-size:14px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;outline:none;">
+          <option value="">Pilih Karyawan</option>
+          {% for emp in employees %}
+          <option value="{{ emp.id }}" {% if selected_employee_id == emp.id|stringformat:"s" %}selected{% endif %}>{{ emp.full_name }} ({{ emp.npp }})</option>
+          {% endfor %}
+        </select>
+        {% else %}
+        <input type="text" value="{{ balance.employee.full_name }} ({{ balance.employee.npp }})" readonly style="width:100%;padding:10px 14px;font-size:14px;border:1px solid #e2e8f0;border-radius:10px;background:#f1f5f9;color:#64748b;outline:none;cursor:not-allowed;">
+        {% endif %}
+      </div>
+
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Tahun <span style="color:#ef4444;">*</span></label>
+        {% if action == 'Tambah' %}
+        <input type="number" name="year" value="{% now 'Y' %}" min="2000" max="2100" required style="width:100%;padding:10px 14px;font-size:14px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;outline:none;">
+        {% else %}
+        <input type="text" value="{{ balance.year }}" readonly name="year" style="width:100%;padding:10px 14px;font-size:14px;border:1px solid #e2e8f0;border-radius:10px;background:#f1f5f9;color:#64748b;outline:none;cursor:not-allowed;">
+        {% endif %}
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Total Jatah (Hari) <span style="color:#ef4444;">*</span></label>
+          <input type="number" name="total_balance" value="{{ balance.total_balance|default:'12' }}" min="0" required style="width:100%;padding:10px 14px;font-size:14px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;outline:none;">
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Sudah Terpakai (Hari)</label>
+          <input type="number" name="used_balance" value="{{ balance.used_balance|default:'0' }}" min="0" required style="width:100%;padding:10px 14px;font-size:14px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;outline:none;">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:16px;justify-content:flex-end;">
+        <a href="{% url 'leave_balance_list' %}" style="padding:10px 18px;border-radius:10px;background:#fff;border:1px solid #e2e8f0;color:#475569;font-size:14px;font-weight:500;text-decoration:none;">Batal</a>
+        <button type="submit" style="padding:10px 18px;border-radius:10px;background:#0d9488;border:none;color:white;font-size:14px;font-weight:600;cursor:pointer;transition:0.2s;" onmouseover="this.style.background='#0f766e'" onmouseout="this.style.background='#0d9488'">Simpan</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

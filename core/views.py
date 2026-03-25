@@ -8,6 +8,9 @@ from django.http import HttpResponse, HttpResponseForbidden
 # =========================
 def role_required(role_name):
     def check(user):
+        # Superuser punya akses ke semua fitur
+        if user.is_superuser:
+            return True
         return user.is_authenticated and user.groups.filter(name=role_name).exists()
     return user_passes_test(check, login_url='/login/')
 
@@ -37,22 +40,50 @@ def dashboard(request):
             """
         )
 
-    employee = user.employee
-    group = user.groups.first()  # sementara 1 role saja
+    # SUPERUSER BISA AKSES SEMUA, TIDAK DIPAKSA KE ADMIN LAGI
+    # if user.is_superuser:
+    #     return redirect('/admin/')
 
+    employee = user.employee
+    group = user.groups.first()
+
+    # Redirect ke dashboard sesuai role
+    if user.is_superuser:
+        return render(request, 'core/dashboard.html', {'role': 'Administrator'})
+
+    if user.groups.filter(name='direktur').exists():
+        return redirect('dashboard_direktur')
+    elif user.groups.filter(name='manager').exists():
+        return redirect('dashboard_manager')
+    elif user.groups.filter(name='asisten_manager').exists():
+        return redirect('dashboard_asisten_manager')
+    elif user.groups.filter(name='leader').exists():
+        return redirect('dashboard_leader')
+    elif user.groups.filter(name='karyawan').exists():
+        return redirect('dashboard_karyawan')
+
+    # Jika belum ada role, tampilkan info dasar
     context = {
         "npp": employee.npp,
         "full_name": employee.full_name,
         "role": group.name if group else "-",
     }
 
-    # sementara pakai text response (frontend belum ada)
     return HttpResponse(
         f"""
-        <h2>Dashboard</h2>
-        <p>NPP: {context['npp']}</p>
-        <p>Nama: {context['full_name']}</p>
-        <p>Role: {context['role']}</p>
+        <html>
+        <head><title>Dashboard</title></head>
+        <body style="font-family: Arial; padding: 20px;">
+            <h2>Dashboard</h2>
+            <p>NPP: {context['npp']}</p>
+            <p>Nama: {context['full_name']}</p>
+            <p>Role: {context['role']}</p>
+            <br>
+            <p style="color: #e67e22;">⚠️ Role belum ditentukan. Hubungi admin untuk assign role.</p>
+            <br>
+            <a href="/logout/" style="padding: 10px 20px; background: #e74c3c; color: white; text-decoration: none; border-radius: 4px;">Logout</a>
+        </body>
+        </html>
         """
     )
 
@@ -63,24 +94,40 @@ def dashboard(request):
 
 @role_required('direktur')
 def dashboard_direktur(request):
-    return HttpResponse("Dashboard Direktur")
+    context = {
+        'role': 'direktur'
+    }
+    return render(request, 'core/dashboard.html', context)
 
 
 @role_required('manager')
 def dashboard_manager(request):
-    return HttpResponse("Dashboard Manager")
+    context = {
+        'role': 'manager'
+    }
+    return render(request, 'core/dashboard.html', context)
 
 
 @role_required('asisten_manager')
 def dashboard_asisten_manager(request):
-    return HttpResponse("Dashboard Asisten Manager")
+    context = {
+        'role': 'asisten_manager'
+    }
+    return render(request, 'core/dashboard.html', context)
 
 
 @role_required('leader')
 def dashboard_leader(request):
-    return HttpResponse("Dashboard Leader")
+    context = {
+        'role': 'leader'
+    }
+    return render(request, 'core/dashboard.html', context)
 
 
 @role_required('karyawan')
 def dashboard_karyawan(request):
-    return HttpResponse("Dashboard Karyawan")
+    context = {
+        'role': 'karyawan'
+    }
+    return render(request, 'core/dashboard.html', context)
+

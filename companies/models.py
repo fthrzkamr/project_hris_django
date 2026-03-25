@@ -1,9 +1,11 @@
 from django.db import models
 
+
 class Company(models.Model):
-    name = models.CharField(max_length=150)
-    code = models.CharField(max_length=20, unique=True)
-    is_active = models.BooleanField(default=True)
+    name = models.CharField(max_length=150, unique=True)
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ['name']

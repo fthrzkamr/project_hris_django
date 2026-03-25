@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Karyawan — HRIS Dua Farma{% endblock %}
+{% block content %}
+<div class="p-6 sm:p-8" style="font-family:'Poppins',sans-serif;background:#f8fafc;min-height:100vh;">
+
+  <nav class="flex items-center gap-1.5 text-xs text-slate-400 mb-6">
+    <a href="/" class="hover:text-teal-600 transition-colors">Dashboard</a>
+    <span>/</span>
+    <a href="{% url 'employee_list' %}" class="hover:text-teal-600 transition-colors">Data Karyawan</a>
+    <span>/</span>
+    <span class="text-slate-600 font-medium">{{ action }} Karyawan</span>
+  </nav>
+
+  <div class="max-w-5xl">
+
+    <!-- Form Header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+      <div style="width:48px;height:48px;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,0.05);border:1px solid #e2e8f0;">
+        <svg style="width:24px;height:24px;" fill="none" stroke="#0d9488" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+      </div>
+      <div>
+        <h1 style="font-size:20px;font-weight:700;color:#1e293b;margin:0;">{{ action }} Data Karyawan</h1>
+        <p style="font-size:13px;color:#64748b;margin:2px 0 0 0;">Lengkapi seluruh informasi karyawan di bawah ini.</p>
+      </div>
+    </div>
+
+    <!-- Error Messages -->
+    {% if messages %}
+    <div style="margin-bottom:20px;">
+      {% for message in messages %}{% if message.tags == 'error' %}
+      <div style="display:flex;align-items:flex-start;gap:10px;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;padding:12px 16px;border-radius:12px;font-size:13px;margin-bottom:8px;">
+        <svg style="width:15px;height:15px;flex-shrink:0;margin-top:1px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>{{ message }}</span>
+      </div>
+      {% endif %}{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <!-- ── SECTION: IDENTITAS ─────────────────────────────────── -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+        <h2 style="font-size:14px;font-weight:600;color:#0d9488;margin:0 0 16px 0;display:flex;align-items:center;gap:8px;">
+          <span>👤</span> Identitas Pribadi
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">NPP <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="npp" value="{{ employee.npp|default:post.npp|default:'' }}" {% if action == 'Edit' %}required{% endif %} placeholder="Kosongkan untuk auto-generate"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">NIK / KTP</label>
+            <input type="text" name="nik" value="{{ employee.nik|default:post.nik|default:'' }}" placeholder="16 digit NIK"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+
+          <div style="grid-column:1/-1;">
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Nama Lengkap <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="full_name" value="{{ employee.full_name|default:post.full_name|default:'' }}" required placeholder="Nama sesuai KTP"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Nama Panggilan</label>
+            <input type="text" name="nickname" value="{{ employee.nickname|default:post.nickname|default:'' }}" placeholder="Nama panggilan sehari-hari"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Jenis Kelamin</label>
+            <select name="gender" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              <option value="">— Pilih —</option>
+              {% for val,label in gender_choices %}
+              <option value="{{ val }}" {% if employee.gender == val or post.gender == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Tempat Lahir</label>
+            <input type="text" name="birth_place" value="{{ employee.birth_place|default:post.birth_place|default:'' }}" placeholder="Kota"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Tanggal Lahir</label>
+            <input type="date" name="birth_date" value="{{ employee.birth_date|date:'Y-m-d'|default:post.birth_date|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Agama</label>
+            <select name="religion" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              <option value="">— Pilih —</option>
+              {% for val,label in religion_choices %}
+              <option value="{{ val }}" {% if employee.religion == val or post.religion == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Status Perkawinan</label>
+            <select name="marital_status" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              <option value="">— Pilih —</option>
+              {% for val,label in marital_choices %}
+              <option value="{{ val }}" {% if employee.marital_status == val or post.marital_status == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Golongan Darah</label>
+            <select name="blood_type" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              <option value="">— Pilih —</option>
+              {% for val,label in blood_choices %}
+              <option value="{{ val }}" {% if employee.blood_type == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Email</label>
+            <input type="email" name="email" value="{{ employee.email|default:post.email|default:'' }}" placeholder="email@contoh.com"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">No. Telepon</label>
+            <input type="text" name="phone" value="{{ employee.phone|default:post.phone|default:'' }}" placeholder="08xx-xxxx-xxxx"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Kebangsaan</label>
+            <input type="text" name="nationality" value="{{ employee.nationality|default:post.nationality|default:'WNI' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Foto Karyawan</label>
+            {% if employee.photo %}
+            <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+              <img src="{{ employee.photo.url }}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+              <span style="font-size:12px;color:#64748b;">Foto saat ini</span>
+            </div>
+            {% endif %}
+            <input type="file" name="photo" accept="image/*"
+                   style="width:100%;padding:6px 14px;font-size:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#475569;box-sizing:border-box;font-family:'Poppins',sans-serif;">
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION: ALAMAT ─────────────────────────────────── -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+        <h2 style="font-size:14px;font-weight:600;color:#0d9488;margin:0 0 16px 0;display:flex;align-items:center;gap:8px;">
+          <span>🏠</span> Alamat Tinggal
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+          <div style="grid-column:1/-1;">
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Alamat Lengkap</label>
+            <textarea name="address" rows="3" placeholder="Jl. nama jalan no. xx"
+                      style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;resize:vertical;"
+                      onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">{{ employee.address|default:post.address|default:'' }}</textarea>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">RT/RW</label>
+            <input type="text" name="rt_rw" value="{{ employee.rt_rw|default:post.rt_rw|default:'' }}" placeholder="001/002"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Kelurahan</label>
+            <input type="text" name="kelurahan" value="{{ employee.kelurahan|default:post.kelurahan|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Kecamatan</label>
+            <input type="text" name="kecamatan" value="{{ employee.kecamatan|default:post.kecamatan|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Kota / Kabupaten</label>
+            <input type="text" name="kota" value="{{ employee.kota|default:post.kota|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Provinsi</label>
+            <input type="text" name="provinsi" value="{{ employee.provinsi|default:post.provinsi|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Kode Pos</label>
+            <input type="text" name="kode_pos" value="{{ employee.kode_pos|default:post.kode_pos|default:'' }}" placeholder="12345"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION: KELUARGA ─────────────────────────────────── -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+        <h2 style="font-size:14px;font-weight:600;color:#0d9488;margin:0 0 16px 0;display:flex;align-items:center;gap:8px;">
+          <span>👨‍👩‍👧</span> Keluarga & Kontak Darurat
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Nama Ayah</label>
+            <input type="text" name="father_name" value="{{ employee.father_name|default:post.father_name|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Nama Ibu</label>
+            <input type="text" name="mother_name" value="{{ employee.mother_name|default:post.mother_name|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div style="grid-column:1/-1;border-top:1px dashed #e2e8f0;padding-top:16px;">
+            <p style="font-size:12px;font-weight:600;color:#374151;margin:0 0 12px 0;">🚨 Kontak Darurat</p>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Nama Kontak Darurat</label>
+            <input type="text" name="emergency_name" value="{{ employee.emergency_name|default:post.emergency_name|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">No. Telepon Darurat</label>
+            <input type="text" name="emergency_phone" value="{{ employee.emergency_phone|default:post.emergency_phone|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Hubungan</label>
+            <select name="emergency_relation" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              <option value="">— Pilih —</option>
+              {% for val,label in emergency_rel_choices %}
+              <option value="{{ val }}" {% if employee.emergency_relation == val or post.emergency_relation == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION: PENDIDIKAN ─────────────────────────────────── -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+        <h2 style="font-size:14px;font-weight:600;color:#0d9488;margin:0 0 16px 0;display:flex;align-items:center;gap:8px;">
+          <span>🎓</span> Pendidikan
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Pendidikan Terakhir</label>
+            <select name="last_education" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              <option value="">— Pilih —</option>
+              {% for val,label in education_choices %}
+              <option value="{{ val }}" {% if employee.last_education == val or post.last_education == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Jurusan / Bidang Studi</label>
+            <input type="text" name="education_major" value="{{ employee.education_major|default:post.education_major|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Nama Sekolah / Universitas</label>
+            <input type="text" name="education_school" value="{{ employee.education_school|default:post.education_school|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Tahun Lulus</label>
+            <input type="text" name="graduation_year" value="{{ employee.graduation_year|default:post.graduation_year|default:'' }}" placeholder="2020"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION: DOKUMEN & BANK ─────────────────────────────────── -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+        <h2 style="font-size:14px;font-weight:600;color:#0d9488;margin:0 0 16px 0;display:flex;align-items:center;gap:8px;">
+          <span>📄</span> Dokumen & Bank
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">NPWP</label>
+            <input type="text" name="npwp" value="{{ employee.npwp|default:post.npwp|default:'' }}" placeholder="00.000.000.0-000.000"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">No. BPJS Ketenagakerjaan</label>
+            <input type="text" name="bpjs_ketenagakerjaan" value="{{ employee.bpjs_ketenagakerjaan|default:post.bpjs_ketenagakerjaan|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">No. BPJS Kesehatan</label>
+            <input type="text" name="bpjs_kesehatan" value="{{ employee.bpjs_kesehatan|default:post.bpjs_kesehatan|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Kelas BPJS Kesehatan</label>
+            <select name="bpjs_kesehatan_type" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              {% for val,label in bpjs_kes_choices %}
+              <option value="{{ val }}" {% if employee.bpjs_kesehatan_type == val or post.bpjs_kesehatan_type == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="grid-column:1/-1;border-top:1px dashed #e2e8f0;padding-top:16px;">
+            <p style="font-size:12px;font-weight:600;color:#374151;margin:0 0 12px 0;">🏦 Informasi Rekening Bank</p>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Nama Bank</label>
+            <input type="text" name="bank_name" value="{{ employee.bank_name|default:post.bank_name|default:'' }}" placeholder="BCA / BNI / Mandiri"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">No. Rekening</label>
+            <input type="text" name="bank_account_no" value="{{ employee.bank_account_no|default:post.bank_account_no|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Nama di Rekening</label>
+            <input type="text" name="bank_account_name" value="{{ employee.bank_account_name|default:post.bank_account_name|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION: KEPEGAWAIAN ─────────────────────────────────── -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+        <h2 style="font-size:14px;font-weight:600;color:#0d9488;margin:0 0 16px 0;display:flex;align-items:center;gap:8px;">
+          <span>💼</span> Kepegawaian & Kontrak
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Entitas / PT</label>
+            <select name="company" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              <option value="">— Pilih Perusahaan —</option>
+              {% for c in companies %}
+              <option value="{{ c.pk }}" {% if employee.company_id == c.pk or post.company == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Departemen</label>
+            <select name="department" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              <option value="">— Pilih Departemen —</option>
+              {% for d in departments %}
+              <option value="{{ d.pk }}" {% if employee.department_id == d.pk or post.department == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Jabatan</label>
+            <select name="position" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              <option value="">— Pilih Jabatan —</option>
+              {% for p in positions %}
+              <option value="{{ p.pk }}" {% if employee.position_id == p.pk or post.position == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Cabang</label>
+            <select name="branch" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              <option value="">— Pilih Cabang —</option>
+              {% for b in branches %}
+              <option value="{{ b.pk }}" {% if employee.branch_id == b.pk or post.branch == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }} — {{ b.company.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Tipe Karyawan</label>
+            <select name="employment_type" style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;">
+              <option value="">— Pilih —</option>
+              {% for val,label in employment_choices %}
+              <option value="{{ val }}" {% if employee.employment_type == val or post.employment_type == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Tanggal Masuk Kerja</label>
+            <input type="date" name="join_date" value="{{ employee.join_date|date:'Y-m-d'|default:post.join_date|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Mulai Kontrak</label>
+            <input type="date" name="contract_start" value="{{ employee.contract_start|date:'Y-m-d'|default:post.contract_start|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#374151;margin-bottom:5px;">Selesai Kontrak</label>
+            <input type="date" name="contract_end" value="{{ employee.contract_end|date:'Y-m-d'|default:post.contract_end|default:'' }}"
+                   style="width:100%;padding:9px 14px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          <div>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-top:20px;">
+              <input type="checkbox" name="is_active" {% if employee.is_active or action == 'Tambah' or post.is_active == 'on' %}checked{% endif %}
+                     style="width:16px;height:16px;accent-color:#0d9488;cursor:pointer;">
+              <span style="font-size:13px;font-weight:500;color:#374151;">Karyawan Aktif</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button type="submit"
+                style="display:flex;align-items:center;gap:8px;padding:12px 24px;background:#0d9488;border-radius:12px;border:none;cursor:pointer;color:white;font-size:14px;font-weight:600;font-family:'Poppins',sans-serif;box-shadow:0 4px 12px rgba(13,148,136,0.2);transition:all 0.2s;"
+                onmouseover="this.style.background='#0f766e';this.style.transform='translateY(-1px)';" 
+                onmouseout="this.style.background='#0d9488';this.style.transform='translateY(0)';">
+          <svg style="width:18px;height:18px;" fill="none" stroke="white" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          Simpan
+        </button>
+        <a href="{% url 'employee_list' %}"
+           style="display:flex;align-items:center;gap:8px;padding:12px 20px;background:#fff;border-radius:12px;border:1px solid #e2e8f0;text-decoration:none;color:#475569;font-size:14px;font-weight:500;font-family:'Poppins',sans-serif;transition:all 0.2s;"
+           onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">Batal</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

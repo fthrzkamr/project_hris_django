@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{% static 'css/output.css' %}?v={{ request.GET.urlencode }}{% now 'U' %}">
     {% block extra_css %}{% endblock %}
   </head>
-  <body class="bg-base-200">
+  <body class="bg-slate-50" style="font-family: 'Poppins', sans-serif;">
     {% include 'components/navbar.html' %}
 
     <!-- Backdrop for mobile sidebar -->
@@ -124,6 +124,26 @@
           isSidebarOpen = false;
         }
         updateSidebarState();
+
+        // ── Persist sidebar scroll position across page navigations ──
+        const SCROLL_KEY = 'sidebarScrollTop';
+
+        // Restore scroll position immediately after render
+        const savedScroll = sessionStorage.getItem(SCROLL_KEY);
+        if (savedScroll !== null) {
+          sidebar.scrollTop = parseInt(savedScroll, 10);
+        }
+
+        // Save scroll position on every scroll event
+        sidebar.addEventListener('scroll', function () {
+          sessionStorage.setItem(SCROLL_KEY, sidebar.scrollTop);
+        });
+
+        // Also scroll active item into view if it's not visible
+        const activeItem = sidebar.querySelector('.bg-teal-50, .bg-slate-100');
+        if (activeItem && savedScroll === null) {
+          activeItem.scrollIntoView({ block: 'nearest' });
+        }
       });
     </script>
 

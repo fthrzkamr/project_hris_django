@@ -32,7 +32,6 @@ class CustomUserAdmin(UserAdmin):
     get_full_name.short_description = 'Nama'
 
     def get_role(self, obj):
-        if hasattr(obj, 'employee') and obj.employee.role:
-            return obj.employee.role.name
-        return '-'
+        group = obj.groups.first()
+        return group.name if group else '-'
     get_role.short_description = 'Jabatan / Role'

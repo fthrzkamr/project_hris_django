@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Cabang — HRIS Dua Farma{% endblock %}
+{% block content %}
+<div class="p-6 sm:p-8" style="font-family:'Poppins',sans-serif;">
+
+  <nav class="flex items-center gap-1.5 text-xs text-slate-400 mb-6">
+    <a href="/" class="hover:text-teal-600 transition-colors">Dashboard</a>
+    <span class="text-slate-300">/</span>
+    <a href="{% url 'branch_list' %}" class="hover:text-teal-600 transition-colors">Cabang</a>
+    <span class="text-slate-300">/</span>
+    <span class="text-slate-600 font-medium">{{ action }} Cabang</span>
+  </nav>
+
+  <div class="max-w-2xl">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+
+      <!-- Card Header -->
+      <div style="display:flex;align-items:center;gap:12px;padding:20px 24px;border-bottom:1px solid #f1f5f9;">
+        <div style="width:40px;height:40px;background:#f0fdfa;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg style="width:20px;height:20px;" fill="none" stroke="#0d9488" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 style="font-size:15px;font-weight:600;color:#1e293b;margin:0;">{{ action }} Cabang</h1>
+          <p style="font-size:12px;color:#94a3b8;margin:2px 0 0 0;">Isi form di bawah dengan data yang benar</p>
+        </div>
+      </div>
+
+      <!-- Error Messages -->
+      {% if messages %}
+      <div style="padding:16px 24px 0;">
+        {% for message in messages %}
+        {% if message.tags == 'error' %}
+        <div style="display:flex;align-items:flex-start;gap:10px;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;padding:12px 16px;border-radius:12px;font-size:13px;margin-bottom:8px;">
+          <svg style="width:15px;height:15px;flex-shrink:0;margin-top:1px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>{{ message }}</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Form -->
+      <form method="post" style="padding:24px;">
+        {% csrf_token %}
+        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:20px;">
+
+          <!-- Nama Cabang -->
+          <div>
+            <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+              Nama Cabang <span style="color:#ef4444;">*</span>
+            </label>
+            <input type="text" name="name" value="{{ branch.name|default:'' }}"
+                   placeholder="Contoh: Cabang Jakarta Pusat"
+                   required autofocus
+                   style="width:100%;padding:10px 16px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                   onfocus="this.style.borderColor='#0d9488';this.style.boxShadow='0 0 0 3px rgba(13,148,136,0.1)'"
+                   onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+          </div>
+
+          <!-- Perusahaan -->
+          <div>
+            <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+              Perusahaan <span style="color:#ef4444;">*</span>
+            </label>
+            <select name="company" required
+                    style="width:100%;padding:10px 16px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                    onfocus="this.style.borderColor='#0d9488'" onblur="this.style.borderColor='#e2e8f0'">
+              <option value="">-- Pilih Perusahaan --</option>
+              {% for company in companies %}
+              <option value="{{ company.pk }}" {% if branch.company_id == company.pk %}selected{% endif %}>{{ company.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Alamat -->
+          <div>
+            <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+              Alamat <span style="font-size:11px;color:#94a3b8;">(opsional)</span>
+            </label>
+            <textarea name="address" rows="3"
+                      placeholder="Jl. Contoh No. 1, Kota, Provinsi"
+                      style="width:100%;padding:10px 16px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;resize:vertical;"
+                      onfocus="this.style.borderColor='#0d9488';this.style.boxShadow='0 0 0 3px rgba(13,148,136,0.1)'"
+                      onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">{{ branch.address|default:'' }}</textarea>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div style="border-top:1px solid #f1f5f9;margin-bottom:20px;"></div>
+
+        <!-- Buttons -->
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button type="submit"
+                  style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:#0d9488;border-radius:10px;border:none;cursor:pointer;"
+                  onmouseover="this.style.background='#0f766e'" onmouseout="this.style.background='#0d9488'">
+            <svg style="width:16px;height:16px;" fill="none" stroke="white" viewBox="0 0 24 24">
+              {% if action == 'Edit' %}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              {% else %}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              {% endif %}
+            </svg>
+          </button>
+          <a href="{% url 'branch_list' %}"
+             style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:10px;border:1px solid #e2e8f0;text-decoration:none;"
+             onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+            <svg style="width:16px;height:16px;" fill="none" stroke="#475569" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h2>Profil Saya</h2>
+
+    <p>Nama: {{ employee.full_name }}</p>
+    <p>NPP: {{ employee.npp }}</p>
+    <p>Jabatan: {{ employee.position }}</p>
+
+    <p>No HP: {{ profile.phone_number }}</p>
+    <p>Email: {{ profile.email_personal }}</p>
+
+    <a href="{% url 'edit_profile' %}">Edit Profil</a>
+  </body>
+</html>

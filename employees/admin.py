@@ -36,30 +36,43 @@ class EmployeeAdmin(admin.ModelAdmin):
     )
 
     fieldsets = (
-        ('Identitas Dasar', {
+        ('Identitas Pribadi', {
             'fields': (
-                'npp',
-                'full_name',
-                'email',
-                'phone',
+                'user', 'photo', 'npp', 'nik', 'full_name', 'nickname',
+                'gender', 'birth_place', 'birth_date', 'religion',
+                'marital_status', 'blood_type', 'nationality',
+                'email', 'phone'
             )
         }),
-        ('Struktur Organisasi', {
+        ('Alamat', {
             'fields': (
-                'company',
-                'department',
-                'position',
-                'branch',
+                'address', 'rt_rw', 'kelurahan', 'kecamatan',
+                'kota', 'provinsi', 'kode_pos'
             )
         }),
-        ('Status Kerja', {
+        ('Keluarga & Darurat', {
             'fields': (
-                'join_date',
-                'is_active',
+                'father_name', 'mother_name',
+                'emergency_name', 'emergency_phone', 'emergency_relation'
             )
         }),
-        ('Akun Login (Opsional)', {
-            'fields': ('user',),
-            'description': 'Link dengan User untuk akses login'
+        ('Pendidikan', {
+            'fields': (
+                'last_education', 'education_major',
+                'education_school', 'graduation_year'
+            )
+        }),
+        ('Dokumen & Bank', {
+            'fields': (
+                'npwp', 'bpjs_ketenagakerjaan', 'bpjs_kesehatan', 'bpjs_kesehatan_type',
+                'bank_name', 'bank_account_no', 'bank_account_name'
+            )
+        }),
+        ('Data Kepegawaian', {
+            'fields': (
+                'company', 'department', 'position', 'branch',
+                'employment_type', 'join_date', 'contract_start', 'contract_end',
+                'is_active'
+            )
         }),
     )

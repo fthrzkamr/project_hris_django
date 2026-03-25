@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Entitas — HRIS Dua Farma{% endblock %}
+{% block content %}
+<div class="p-6 sm:p-8" style="font-family:'Poppins',sans-serif;">
+
+  <nav class="flex items-center gap-1.5 text-xs text-slate-400 mb-6">
+    <a href="/" class="hover:text-teal-600 transition-colors">Dashboard</a>
+    <span class="text-slate-300">/</span>
+    <a href="{% url 'company_list' %}" class="hover:text-teal-600 transition-colors">Entitas Perusahaan</a>
+    <span class="text-slate-300">/</span>
+    <span class="text-slate-600 font-medium">{{ action }} Entitas</span>
+  </nav>
+
+  <div class="max-w-2xl">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+
+      <div style="display:flex;align-items:center;gap:12px;padding:20px 24px;border-bottom:1px solid #f1f5f9;">
+        <div style="width:40px;height:40px;background:#f0fdfa;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg style="width:20px;height:20px;" fill="none" stroke="#0d9488" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 style="font-size:15px;font-weight:600;color:#1e293b;margin:0;">{{ action }} Entitas Perusahaan</h1>
+          <p style="font-size:12px;color:#94a3b8;margin:2px 0 0 0;">Isi form di bawah dengan data yang benar</p>
+        </div>
+      </div>
+
+      {% if messages %}
+      <div style="padding:16px 24px 0;">
+        {% for message in messages %}
+        {% if message.tags == 'error' %}
+        <div style="display:flex;align-items:flex-start;gap:10px;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;padding:12px 16px;border-radius:12px;font-size:13px;margin-bottom:8px;">
+          <svg style="width:15px;height:15px;flex-shrink:0;margin-top:1px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>{{ message }}</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="post" style="padding:24px;">
+        {% csrf_token %}
+        <div style="margin-bottom:20px;">
+          <label style="display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:6px;">
+            Nama Perusahaan / PT <span style="color:#ef4444;">*</span>
+          </label>
+          <input type="text" name="name" value="{{ company.name|default:'' }}"
+                 placeholder="Contoh: PT Dua Farma Utama"
+                 required autofocus
+                 style="width:100%;padding:10px 16px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
+                 onfocus="this.style.borderColor='#0d9488';this.style.boxShadow='0 0 0 3px rgba(13,148,136,0.1)'"
+                 onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+        </div>
+
+        <div style="border-top:1px solid #f1f5f9;margin-bottom:20px;"></div>
+
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button type="submit"
+                  style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:#0d9488;border-radius:10px;border:none;cursor:pointer;"
+                  onmouseover="this.style.background='#0f766e'" onmouseout="this.style.background='#0d9488'">
+            <svg style="width:16px;height:16px;" fill="none" stroke="white" viewBox="0 0 24 24">
+              {% if action == 'Edit' %}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              {% else %}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              {% endif %}
+            </svg>
+          </button>
+          <a href="{% url 'company_list' %}"
+             style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:10px;border:1px solid #e2e8f0;text-decoration:none;"
+             onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+            <svg style="width:16px;height:16px;" fill="none" stroke="#475569" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
