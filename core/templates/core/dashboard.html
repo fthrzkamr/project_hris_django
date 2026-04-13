@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard — HRIS Dua Farma{% endblock %}
+{% block title %}Dashboard — HRIS YourCompany{% endblock %}
 
 {% block content %}
 <div class="p-6 sm:p-8 space-y-7 min-h-screen">
@@ -14,7 +14,7 @@
       </h1>
       <p class="text-sm text-slate-400 mt-1 font-normal">
         {{ user.groups.first.name|default:"Administrator"|title }} &bull;
-        Selamat datang di sistem HRIS Dua Farma Groups
+        Selamat datang di sistem HRIS YourCompany
       </p>
     </div>
     <div class="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-sm text-slate-500 shadow-sm self-start sm:self-auto">

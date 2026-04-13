@@ -23,18 +23,24 @@
     <p class="sidebar-text px-3 pt-5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-400" id="sectionTitle2">Self Service</p>
     <ul class="space-y-0.5">
       <li>
-        <a href="#" data-tip="Absensi Saya"
-           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors duration-150 group">
-          <svg class="w-[18px] h-[18px] shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="{% url 'attendance_dashboard' %}" data-tip="Absensi Saya"
+           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-150 group
+                  {% if request.resolver_match.url_name == 'attendance_dashboard' %}
+                  bg-slate-100 text-slate-800
+                  {% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-800{% endif %}">
+          <svg class="w-[18px] h-[18px] shrink-0 {% if request.resolver_match.url_name == 'attendance_dashboard' %}text-slate-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           <span class="sidebar-text text-[13px] font-medium leading-none">Absensi Saya</span>
         </a>
       </li>
       <li>
-        <a href="#" data-tip="Pengajuan Cuti"
-           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors duration-150 group">
-          <svg class="w-[18px] h-[18px] shrink-0 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="{% url 'leave_history' %}" data-tip="Pengajuan Cuti"
+           class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-150 group
+                  {% if request.resolver_match.url_name in 'leave_history,leave_apply' %}
+                  bg-slate-100 text-slate-800
+                  {% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-800{% endif %}">
+          <svg class="w-[18px] h-[18px] shrink-0 {% if request.resolver_match.url_name in 'leave_history,leave_apply' %}text-slate-600{% else %}text-slate-400 group-hover:text-slate-600{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
           </svg>
           <span class="sidebar-text text-[13px] font-medium leading-none">Pengajuan Cuti</span>

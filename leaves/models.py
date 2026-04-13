@@ -5,6 +5,7 @@ class LeaveType(models.Model):
     name = models.CharField(max_length=100)
     is_deduct_annual = models.BooleanField(default=True, help_text="Apakah memotong sisa jatah cuti reguler?")
     requires_attachment = models.BooleanField(default=False, help_text="Apakah butuh surat keterangan/bukti?")
+    default_days = models.IntegerField(null=True, blank=True, help_text="Jatah hari tetap (kosongkan jika fleksibel)")
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

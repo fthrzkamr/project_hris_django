@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ action }} Entitas — HRIS Dua Farma{% endblock %}
+{% block title %}{{ action }} Entitas — HRIS YourCompany{% endblock %}
 {% block content %}
 <div class="p-6 sm:p-8" style="font-family:'Poppins',sans-serif;">
 
@@ -48,7 +48,7 @@
             Nama Perusahaan / PT <span style="color:#ef4444;">*</span>
           </label>
           <input type="text" name="name" value="{{ company.name|default:'' }}"
-                 placeholder="Contoh: PT Dua Farma Utama"
+                 placeholder="Contoh: PT YourCompany Utama"
                  required autofocus
                  style="width:100%;padding:10px 16px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;color:#1e293b;box-sizing:border-box;font-family:'Poppins',sans-serif;outline:none;"
                  onfocus="this.style.borderColor='#0d9488';this.style.boxShadow='0 0 0 3px rgba(13,148,136,0.1)'"

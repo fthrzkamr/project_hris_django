@@ -1,116 +1,341 @@
 {% extends 'base.html' %}
-{% block title %}Data Saldo Cuti — HRIS Dua Farma{% endblock %}
+{% block title %}Saldo Cuti Karyawan — HRIS{% endblock %}
 
 {% block content %}
-<div class="p-6 sm:p-8" style="font-family:'Poppins',sans-serif;">
-  
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+<div class="p-4 sm:p-6 lg:p-8">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
     <div>
-      <h1 style="font-size:20px;font-weight:700;color:#1e293b;margin:0;">Data Saldo Cuti Karyawan ({{ current_year }})</h1>
-      <p style="font-size:13px;color:#64748b;margin:2px 0 0 0;">Monitoring jatah cuti tahunan seluruh karyawan aktif</p>
+      <h1 class="text-xl font-bold text-slate-800">Saldo Cuti Karyawan</h1>
+      <p class="text-xs text-slate-400 mt-0.5">Tahun <span class="font-semibold text-slate-600">{{ current_year }}</span> — Monitoring jatah cuti aktif seluruh karyawan</p>
     </div>
-    <div style="display:flex;gap:10px;">
-      <form method="post" action="{% url 'leave_balance_reset_all' %}" onsubmit="return confirm('PENTING: Anda akan mereset jatah cuti (Tahun {{ current_year }}) menjadi 12 hari untuk SEMUA karyawan yang memenuhi Kriteria (Min. 1 Thn Kerja & Karyawan Tetap/Kontrak). Lanjutkan?');">
-        {% csrf_token %}
-        <button type="submit" style="display:inline-flex;align-items:center;gap:6px;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-          Reset Semua (12 Hari)
-        </button>
-      </form>
-      <a href="{% url 'leave_balance_create' %}" style="display:inline-flex;align-items:center;gap:6px;background:#0d9488;color:white;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;text-decoration:none;transition:background 0.2s;" onmouseover="this.style.background='#0f766e'" onmouseout="this.style.background='#0d9488'">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-        Suntik Saldo Manual
-      </a>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" onclick="showResetModal()"
+              class="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Reset Massal (12 Hari)
+      </button>
+
+      <!-- Modal Reset Massal -->
+      <div id="resetModal" style="display:none; position:fixed; inset:0; z-index:100; background:rgba(15, 23, 42, 0.5); backdrop-filter:blur(4px);">
+        <div style="display:flex; min-height:100vh; align-items:center; justify-content:center; padding:1rem;">
+          <div style="background:#fff; width:100%; max-width:400px; border-radius:20px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); padding:24px; position:relative;">
+            <!-- Icon Alert -->
+            <div style="width:48px; height:48px; background:#fff1f2; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+              <svg style="width:24px; height:24px; color:#e11d48;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+            </div>
+            
+            <h3 style="font-size:18px; font-weight:700; color:#1e293b; margin-bottom:8px;">Reset Jatah Cuti Massal?</h3>
+            <p style="font-size:13px; color:#64748b; line-height:1.6; margin-bottom:24px; text-align: left;">
+              Tindakan ini akan mereset jatah cuti <b>semua karyawan yang memenuhi kriteria</b> menjadi 12 hari dan kolom <b>Terpakai</b> akan menjadi 0. Data sisa saldo otomatis kembali penuh.
+            </p>
+
+            <div style="display:flex; gap:12px;">
+              <button onclick="hideResetModal()" style="flex:1; padding:10px; background:#f1f5f9; border:none; border-radius:12px; font-size:13px; font-weight:600; color:#475569; cursor:pointer;">Batal</button>
+              <form action="{% url 'leave_balance_reset_all' %}" method="post" style="flex:1;">
+                {% csrf_token %}
+                <input type="hidden" name="force_reset" value="true">
+                <button type="submit" style="width:100%; padding:10px; background:#e11d48; border:none; border-radius:12px; font-size:13px; font-weight:600; color:#fff; cursor:pointer;">Ya, Reset Semua</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <script>
+        function showResetModal() { document.getElementById('resetModal').style.display = 'block'; }
+        function hideResetModal() { document.getElementById('resetModal').style.display = 'none'; }
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+          const modal = document.getElementById('resetModal');
+          const inner = modal ? modal.querySelector('div > div') : null;
+          if (event.target === modal) { hideResetModal(); }
+        });
+      </script>
     </div>
   </div>
 
-  <!-- Note Kriteria -->
-  <div style="background:#fffbeb; border:1px solid #fef3c7; padding:12px 16px; border-radius:12px; margin-bottom:20px; display:flex; align-items:center; gap:12px;">
-    <svg style="width:20px; height:20px; color:#f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-    <p style="font-size:12px; color:#92400e; margin:0;"><b>Kriteria Mendapat Cuti:</b> Karyawan Tipe Tetap/Kontrak/PKWT yang sudah bekerja minimal <b>1 tahun</b> (terhitung sejak Tanggal Masuk).</p>
+  <!-- Info Banner Kriteria -->
+  <div class="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-6 text-xs text-amber-800">
+    <svg class="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <span><b>Kriteria Mendapat Jatah Cuti:</b> Karyawan tipe Tetap / Kontrak / PKWT yang sudah bekerja <b>minimal 1 tahun</b> terhitung dari tanggal masuk.</span>
   </div>
 
+  <!-- Flash Messages -->
   {% if messages %}
-  <div style="margin-bottom:20px;">
+  <div class="mb-4 space-y-2">
     {% for message in messages %}
-    <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:12px;font-size:13px;margin-bottom:8px;
-         {% if message.tags == 'success' %}background:#f0fdfa;border:1px solid #ccfbf1;color:#0f766e;
-         {% elif message.tags == 'error' %}background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;
-         {% else %}background:#fffbeb;border:1px solid #fde68a;color:#92400e;{% endif %}">
-      <span>{{ message }}</span>
+    <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-medium
+         {% if message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-700
+         {% elif message.tags == 'error' %}bg-rose-50 border-rose-200 text-rose-700
+         {% else %}bg-amber-50 border-amber-200 text-amber-700{% endif %}">
+      <span class="w-1.5 h-1.5 rounded-full shrink-0
+         {% if message.tags == 'success' %}bg-emerald-500
+         {% elif message.tags == 'error' %}bg-rose-500
+         {% else %}bg-amber-500{% endif %}"></span>
+      {{ message }}
     </div>
     {% endfor %}
   </div>
   {% endif %}
 
-  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden text-[13px]">
+  <!-- Search & Filter Bar -->
+  <div style="margin-bottom:1rem; background:#fff; padding:10px 16px; border:1px solid #e2e8f0; border-radius:16px; box-shadow:0 1px 3px rgba(0,0,0,.05);">
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:20px;">
+
+      <!-- Search Input (live) -->
+      <div style="position:relative; width:220px;">
+        <svg style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:#94a3b8; pointer-events:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input id="liveSearch" type="text" value="{{ search_query|default:'' }}" placeholder="Cari nama/NPP..."
+               style="width:100%; box-sizing:border-box; padding:8px 28px 8px 34px; border:1px solid #e2e8f0; border-radius:10px; font-size:12px; outline:none; color:#334155; background:#f8fafc; transition: all 0.2s;"
+               onfocus="this.style.borderColor='#0d9488'; this.style.background='#fff'; this.style.boxShadow='0 0 0 4px rgba(13, 148, 136, 0.05)'"
+               onblur="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc'; this.style.boxShadow='none'">
+        <button type="button" id="clearSearch" onclick="clearLiveSearch()"
+                style="display:none; position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; padding:0; color:#94a3b8; line-height:0;">
+          <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Show entries -->
+      <form id="perPageForm" method="get" style="display:flex; align-items:center; gap:6px; border-left:1px solid #f1f5f9; padding-left:12px;">
+        <input type="hidden" name="q" id="hiddenQ" value="{{ search_query|default:'' }}">
+        <span style="font-size:12px; color:#94a3b8; white-space:nowrap; font-weight: 500;">Tampilkan</span>
+        <select name="per_page" onchange="this.form.submit()" style="border:1px solid #e2e8f0; border-radius:8px; font-size:12px; padding:4px 8px; outline:none; background:#fff; color:#374151; font-weight: 600; cursor:pointer;">
+          <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+          <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+          <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+          <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+        </select>
+        <span style="font-size:12px; color:#94a3b8; white-space:nowrap; font-weight: 500;">data</span>
+      </form>
+
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    const input    = document.getElementById('liveSearch');
+    const clearBtn = document.getElementById('clearSearch');
+    const perPage  = '{{ per_page }}';
+    let   timer;
+
+    function showClear() {
+      clearBtn.style.display = input.value ? 'block' : 'none';
+    }
+
+    function doSearch() {
+      clearTimeout(timer);
+      timer = setTimeout(function() {
+        const q   = input.value.trim();
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', '1');
+        url.searchParams.set('per_page', perPage);
+        if (q) {
+          url.searchParams.set('q', q);
+        } else {
+          url.searchParams.delete('q');
+        }
+        window.location.href = url.toString();
+      }, 400);
+    }
+
+    input.addEventListener('input', function() {
+      showClear();
+      doSearch();
+    });
+
+    window.clearLiveSearch = function() {
+      input.value = '';
+      showClear();
+      doSearch();
+    };
+
+    // Init on load
+    showClear();
+  })();
+  </script>
+
+  <!-- Table Card -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
+      <table class="w-full text-left text-sm">
         <thead>
-          <tr class="bg-slate-50 border-b border-slate-200">
-            <th class="px-6 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Karyawan</th>
-            <th class="px-6 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">Tipe & Masa Kerja</th>
-            <th class="px-6 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">Kelayakan</th>
-            <th class="px-6 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">Jatah {{ current_year }}</th>
-            <th class="px-6 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">Terpakai</th>
-            <th class="px-6 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">Sisa</th>
-            <th class="px-6 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">Aksi</th>
+          <tr class="border-b border-slate-100 bg-slate-50/60">
+            <th class="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">#</th>
+            <th class="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Karyawan</th>
+            <th class="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Tipe Kerja</th>
+            <th class="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">Masa Kerja</th>
+            <th class="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">Eligibel</th>
+            <th class="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">Jatah</th>
+            <th class="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">Terpakai</th>
+            <th class="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">Sisa</th>
+            <th class="px-5 py-3.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center sticky right-0 bg-slate-50/60">Aksi</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100">
-          {% for item in emp_data %}
-          <tr class="hover:bg-slate-50/50 transition-colors">
-            <td class="px-6 py-4">
+        <tbody class="divide-y divide-slate-50">
+          {% for item in page_obj %}
+          <tr class="hover:bg-slate-50/40 transition-colors group">
+            <!-- Nomor -->
+            <td class="px-5 py-3 text-xs text-slate-400 whitespace-nowrap">{{ forloop.counter }}</td>
+
+            <!-- Karyawan -->
+            <td class="px-5 py-3 whitespace-nowrap">
               <div class="flex items-center gap-3">
                 {% if item.employee.photo %}
-                  <img src="{{ item.employee.photo.url }}" class="w-8 h-8 rounded-full object-cover">
+                  <img src="{{ item.employee.photo.url }}" style="width:32px; height:32px; min-width:32px; min-height:32px; border-radius:9999px; object-fit:cover; border:1px solid #e2e8f0;">
                 {% else %}
-                  <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-[10px]">{{ item.employee.full_name|first|upper }}</div>
+                  <div style="width:32px; height:32px; min-width:32px; min-height:32px; border-radius:9999px; background:linear-gradient(135deg, #2dd4bf, #10b981); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:12px; flex-shrink:0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    {{ item.employee.full_name|first|upper }}
+                  </div>
                 {% endif %}
-                <div>
-                  <p class="font-semibold text-slate-800">{{ item.employee.full_name }}</p>
-                  <p class="text-[11px] text-slate-400">{{ item.employee.npp }}</p>
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-slate-800 truncate max-w-[150px]">{{ item.employee.full_name }}</p>
+                  <p class="text-[10px] text-slate-400">{{ item.employee.npp }}</p>
                 </div>
               </div>
             </td>
-            <td class="px-6 py-4 text-center">
-              <p class="font-medium text-slate-600">{{ item.employee.get_employment_type_display }}</p>
-              <p class="text-[11px] text-slate-400">Masuk: {{ item.employee.join_date|date:"d M Y"|default:"—" }}</p>
+
+            <!-- Tipe Kerja -->
+            <td class="px-5 py-3 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600">
+                {{ item.employee.get_employment_type_display }}
+              </span>
             </td>
-            <td class="px-6 py-4 text-center">
+
+            <!-- Masa Kerja -->
+            <td class="px-5 py-3 text-center whitespace-nowrap">
+              <p class="text-xs font-medium text-slate-700">{{ item.tenure }}</p>
+              <p class="text-[10px] text-slate-400">sejak {{ item.employee.join_date|date:"d M Y"|default:"—" }}</p>
+            </td>
+
+            <!-- Eligibel -->
+            <td class="px-5 py-3 text-center whitespace-nowrap">
               {% if item.is_eligible %}
-                <span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-700 font-bold">LAYAK</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>LAYAK
+                </span>
               {% else %}
-                <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-400 font-bold">TIDAK</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-400 border border-slate-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>TIDAK
+                </span>
               {% endif %}
             </td>
-            <td class="px-6 py-4 text-center">
-              <span class="font-bold text-slate-700">{{ item.balance.total_balance|default:"0" }}</span>
+
+            <!-- Jatah -->
+            <td class="px-5 py-3 text-center whitespace-nowrap">
+              <span class="text-sm font-bold text-slate-700">{{ item.balance.total_balance|default:"0" }}</span>
+              <span class="text-[10px] text-slate-400 ml-0.5">hr</span>
             </td>
-            <td class="px-6 py-4 text-center text-rose-500 font-medium">
-              {{ item.balance.used_balance|default:"0" }}
+
+            <!-- Terpakai -->
+            <td class="px-5 py-3 text-center whitespace-nowrap">
+              <span class="text-sm font-semibold text-rose-500">{{ item.balance.used_balance|default:"0" }}</span>
+              <span class="text-[10px] text-slate-400 ml-0.5">hr</span>
             </td>
-            <td class="px-6 py-4 text-center">
+
+            <!-- Sisa -->
+            <td class="px-5 py-3 text-center whitespace-nowrap">
               {% if item.balance %}
-                <span class="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg font-bold">{{ item.balance.remaining_balance }}</span>
+                {% with sisa=item.balance.remaining_balance %}
+                <span class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold
+                  {% if sisa > 5 %}bg-teal-50 text-teal-700
+                  {% elif sisa > 0 %}bg-amber-50 text-amber-600
+                  {% else %}bg-rose-50 text-rose-500{% endif %}">
+                  {{ sisa }} hr
+                </span>
+                {% endwith %}
               {% else %}
-                <span class="text-slate-300">—</span>
+                <span class="text-slate-300 text-xs">—</span>
               {% endif %}
             </td>
-            <td class="px-6 py-4 text-center">
-              <div class="flex items-center justify-center gap-2">
-                {% if item.balance %}
-                  <a href="{% url 'leave_balance_edit' item.balance.pk %}" class="text-slate-400 hover:text-teal-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></a>
-                {% else %}
-                  <a href="{% url 'leave_balance_create' %}?employee_id={{ item.employee.id }}" title="Tambah Manual" class="text-teal-600 hover:scale-110 transition-transform"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></a>
-                {% endif %}
+
+            <!-- Aksi (sticky) -->
+            <td class="px-5 py-3 text-center whitespace-nowrap sticky right-0 bg-white group-hover:bg-slate-50/40 transition-colors border-l border-slate-100">
+              {% if item.balance %}
+                <a href="{% url 'leave_balance_edit' item.balance.pk %}"
+                   class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-600 hover:bg-teal-50 hover:text-teal-700 transition-all">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                  Edit
+                </a>
+              {% else %}
+                <a href="{% url 'leave_balance_create' %}?employee_id={{ item.employee.id }}"
+                   class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-teal-50 text-teal-700 hover:bg-teal-100 transition-all">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                  Tambah Saldo
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9" class="px-5 py-12 text-center">
+              <div class="flex flex-col items-center gap-2">
+                <svg class="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                <p class="text-sm text-slate-400">Belum ada data karyawan aktif.</p>
               </div>
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
+    </div> <!-- Close overflow-x-auto -->
+
+    <!-- Pagination (Inside Card) -->
+    {% if page_obj.has_other_pages %}
+    <div class="px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <!-- Menampilkan Data Text (Kiri) -->
+      <p class="text-xs text-slate-400">
+        Menampilkan <span class="font-medium text-slate-600">{{ page_obj.start_index }}</span>
+        – <span class="font-medium text-slate-600">{{ page_obj.end_index }}</span>
+        dari <span class="font-medium text-slate-600">{{ page_obj.paginator.count }}</span> data
+      </p>
+
+      <!-- Paginasi Buttons (Kanan) -->
+      <div style="display:flex; align-items:center; gap:4px;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}{% if search_query %}&q={{ search_query }}{% endif %}"
+           style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; border-radius:8px; background:#fff; color:#475569; text-decoration:none; font-size:15px;"
+           onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">&lsaquo;</a>
+        {% else %}
+        <span style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc; color:#cbd5e1; font-size:15px; cursor:not-allowed;">&lsaquo;</span>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+          <span style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:8px; background:#0d9488; color:#fff; font-size:12px; font-weight:600;">{{ num }}</span>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a href="?page={{ num }}&per_page={{ per_page }}{% if search_query %}&q={{ search_query }}{% endif %}"
+             style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; border-radius:8px; background:#fff; color:#475569; text-decoration:none; font-size:12px;"
+             onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}{% if search_query %}&q={{ search_query }}{% endif %}"
+           style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; border-radius:8px; background:#fff; color:#475569; text-decoration:none; font-size:15px;"
+           onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">&rsaquo;</a>
+        {% else %}
+        <span style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc; color:#cbd5e1; font-size:15px; cursor:not-allowed;">&rsaquo;</span>
+        {% endif %}
+      </div>
     </div>
-  </div>
-</div>
+    {% endif %}
+  </div> <!-- Close White Card -->
+
+</div> <!-- Close Main Container -->
 {% endblock %}

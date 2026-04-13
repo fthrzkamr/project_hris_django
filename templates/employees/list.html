@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Data Karyawan — HRIS Dua Farma{% endblock %}
+{% block title %}Data Karyawan — HRIS YourCompany{% endblock %}
 {% block content %}
 <div class="p-6 sm:p-8 space-y-6" style="font-family:'Poppins',sans-serif;">
 
@@ -148,9 +148,9 @@
               <div class="flex items-center gap-3">
                 {% if emp.photo %}
                 <img src="{{ emp.photo.url }}" alt="{{ emp.full_name }}"
-                     style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                     style="width:32px; height:32px; min-width:32px; min-height:32px; border-radius:9999px; object-fit:cover; border:1px solid #e2e8f0;">
                 {% else %}
-                <div style="width:36px;height:36px;background:linear-gradient(135deg,#0d9488,#14b8a6);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <div style="width:32px; height:32px; min-width:32px; min-height:32px; border-radius:9999px; background:linear-gradient(135deg, #2dd4bf, #10b981); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:12px; flex-shrink:0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                   <span style="font-size:13px;font-weight:600;color:white;">{{ emp.full_name|first|upper }}</span>
                 </div>
                 {% endif %}

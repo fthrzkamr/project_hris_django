@@ -11,4 +11,8 @@ urlpatterns = [
     path('balances/<int:pk>/edit/', views.leave_balance_edit, name='leave_balance_edit'),
     path('balances/<int:pk>/delete/', views.leave_balance_delete, name='leave_balance_delete'),
     path('balances/reset-all/', views.leave_balance_reset_all, name='leave_balance_reset_all'),
+
+    # --- Self Service (Employee Side) ---
+    path('history/', views.leave_history, name='leave_history'),
+    path('apply/', views.leave_apply, name='leave_apply'),
 ]

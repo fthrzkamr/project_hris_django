@@ -12,6 +12,7 @@ urlpatterns = [
     path("", include("companies.urls")),
     path("", include("employees.urls")),
     path("leaves/", include("leaves.urls")),
+    path("attendance/", include("attendance.urls")),
 ]
 
 from django.conf import settings

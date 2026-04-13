@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'core',
     'employee_profile',
     'leaves',
+    'attendance',
 
     'django.contrib.admin',
     'django.contrib.auth',

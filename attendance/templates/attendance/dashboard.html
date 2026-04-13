@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+
+{% block title %}Absensi Saya — HRIS{% endblock %}
+
+{% block content %}
+<div class="p-4 sm:p-6 lg:p-8">
+    
+    <!-- Header -->
+    <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <h1 class="text-xl font-bold text-slate-800">Manajemen Kehadiran</h1>
+            <p class="text-xs text-slate-400 mt-1">Lakukan absensi dan pantau riwayat harian Anda</p>
+            <p class="text-[11px] font-semibold text-slate-500 mt-2 flex items-center gap-1.5">
+                <span>Selamat bekerja! Mari awali hari dengan disiplin dan absen tepat waktu ya 🙏✨</span>
+            </p>
+        </div>
+        <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+            <svg class="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div class="flex items-center gap-2">
+                <span id="liveDate" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"></span>
+                <span class="text-slate-200">|</span>
+                <span id="liveClock" class="text-sm font-black text-slate-700 font-mono tracking-tight"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards Section -->
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; margin-bottom: 24px;">
+        
+        <!-- Aksi Absensi -->
+        <div style="flex: 1; min-width: 320px;" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 h-fit">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Aksi Hari Ini</h2>
+                <span class="text-[10px] font-medium text-slate-400 bg-slate-50 px-2 py-1 rounded border border-slate-100 italic">Jadwal: {{ rule.start_time|time:"H:i" }} - {{ rule.end_time|time:"H:i" }}</span>
+            </div>
+
+            {% if not attendance or not attendance.clock_out %}
+                <!-- UI Kamera Absen Wajah (Shared for Masuk & Pulang) -->
+                <div style="position: relative; width: 100%; aspect-ratio: 4/3; background: #0f172a; border-radius: 12px; overflow: hidden; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);">
+                    <video id="webcam" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); opacity: 0.9;"></video>
+                    
+                    <div style="position: absolute; inset: 0; pointer-events: none; padding: 20px;">
+                        <div style="position: absolute; top: 20px; left: 20px; width: 25px; height: 25px; border-top: 3px solid #2dd4bf; border-left: 3px solid #2dd4bf; border-top-left-radius: 8px;"></div>
+                        <div style="position: absolute; top: 20px; right: 20px; width: 25px; height: 25px; border-top: 3px solid #2dd4bf; border-right: 3px solid #2dd4bf; border-top-right-radius: 8px;"></div>
+                        <div style="position: absolute; bottom: 20px; left: 20px; width: 25px; height: 25px; border-bottom: 3px solid #2dd4bf; border-left: 3px solid #2dd4bf; border-bottom-left-radius: 8px;"></div>
+                        <div style="position: absolute; bottom: 20px; right: 20px; width: 25px; height: 25px; border-bottom: 3px solid #2dd4bf; border-right: 3px solid #2dd4bf; border-bottom-right-radius: 8px;"></div>
+                        
+                        <div class="scanner-line" style="position: absolute; top: 20px; left: 20px; right: 20px; height: 2px; background: rgba(45, 212, 191, 0.8); box-shadow: 0 0 10px #2dd4bf;"></div>
+                    </div>
+
+                    <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 6px;">
+                        <p style="font-size: 8px; color: #fff; font-family: monospace; letter-spacing: 1px;">AI.FACE_RECOGNITION_v2</p>
+                    </div>
+
+                    <div style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(45, 212, 191, 0.2); backdrop-filter: blur(4px);">
+                        <p style="font-size: 9px; color: #5eead4; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; margin: 0;">
+                            <span class="animate-pulse" style="display:inline-block; width:6px; height:6px; background:#2dd4bf; border-radius:50%; box-shadow: 0 0 6px #2dd4bf;"></span> 
+                            <span id="camera-status">Mengaktifkan Modul...</span>
+                        </p>
+                    </div>
+                </div>
+
+                {% if not attendance %}
+                    <div id="checkin-container">
+                        <form id="checkin-form" action="{% url 'attendance_clock_in' %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <!-- Tombol Absen Masuk -->
+                            <button type="button" onclick="handleClockIn()" style="background: #0d9488; color: white; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.2);">
+                                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                Verifikasi Wajah & Absen Masuk
+                            </button>
+
+                            <!-- Form Alasan -->
+                            <div id="late-justification" class="hidden mt-4 pt-4 border-t border-slate-100 space-y-3">
+                                <div class="p-3 bg-amber-50 border border-amber-100 rounded-lg">
+                                    <p style="font-size: 10px;" class="text-amber-800 font-bold uppercase tracking-wider mb-1">Peringatan: Anda Terlambat</p>
+                                    <p style="font-size: 11px; line-height: 1.5;" class="text-amber-700 font-medium">Waktu sudah melewati batas toleransi. Silakan lampirkan alasan dan bukti agar tidak terhitung potongan.</p>
+                                </div>
+                                <div>
+                                    <label style="font-size: 10px;" class="block font-bold text-slate-500 uppercase mb-1">Alasan Terlambat</label>
+                                    <textarea name="late_reason" rows="2" style="font-size: 12px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; width: 100%; outline: none; background: #f8fafc; color: #334155; line-height: 1.4;" placeholder="Contoh: Terkena macet total..." required></textarea>
+                                </div>
+                                <div>
+                                    <label style="font-size: 10px;" class="block font-bold text-slate-500 uppercase mb-1">Bukti Foto / Dokumen</label>
+                                    <input type="file" name="late_evidence" accept=".jpg,.jpeg,.png,.pdf" style="font-size: 11px; padding: 6px; border: 1px dashed #cbd5e1; border-radius: 6px; width: 100%; background: #f8fafc; color: #64748b; cursor: pointer;">
+                                </div>
+                                <button type="submit" style="background: #1e293b; color: #ffffff; font-size: 11px; font-weight: bold; width: 100%; padding: 12px; border-radius: 8px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; border: none; margin-top: 16px;">Kirim & Absen Masuk</button>
+                            </div>
+                        </form>
+                    </div>
+                {% else %}
+                    <!-- Form Absen Pulang -->
+                    <form action="{% url 'attendance_clock_out' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" style="background: #f43f5e; color: white; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(244, 63, 94, 0.2);">
+                            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                            Verifikasi Wajah & Absen Pulang
+                        </button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <div class="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-slate-50 text-slate-400 border border-slate-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-xs font-bold uppercase tracking-widest">Absen Hari Ini Selesai</span>
+                </div>
+            {% endif %}
+            
+            <p class="text-[10px] text-slate-400 mt-3 text-center">Data absensi tersimpan secara *real-time*.</p>
+        </div>
+
+        <!-- Log Hari Ini -->
+        <div style="flex: 2; min-width: 320px;" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4">Log Kehadiran Anda Hari Ini</h2>
+            
+            <div style="display: flex; gap: 16px;">
+                <!-- Check In Box -->
+                <div style="flex: 1; display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; {% if attendance.clock_in %}background:#ccfbf1; color:#0d9488;{% else %}background:#f1f5f9; color:#94a3b8;{% endif %}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Check In</p>
+                        <p class="text-base font-black text-slate-700 leading-none">
+                            {% if attendance.clock_in %}{{ attendance.clock_in|time:"H:i" }}{% else %}--:--{% endif %}
+                        </p>
+                    </div>
+                    <div class="ml-auto">
+                        {% if attendance.status == 'late' %}
+                            <span class="text-[9px] font-bold {% if attendance.is_late_excused %}bg-teal-50 text-teal-600 border-teal-100{% else %}bg-rose-50 text-rose-500 border-rose-100{% endif %} border px-1.5 py-0.5 rounded leading-none uppercase">
+                                {% if attendance.is_late_excused %}Dispensasi{% else %}Telat {{ attendance.late_minutes }}m{% endif %}
+                            </span>
+                        {% elif attendance.clock_in %}
+                            <span class="text-[9px] font-bold bg-teal-50 text-teal-600 border border-teal-100 px-1.5 py-0.5 rounded leading-none uppercase">Tepat Waktu</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Check Out Box -->
+                <div style="flex: 1; display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; {% if attendance.clock_out %}background:#ffe4e6; color:#e11d48;{% else %}background:#f1f5f9; color:#94a3b8;{% endif %}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Check Out</p>
+                        <p class="text-base font-black text-slate-700 leading-none">
+                            {% if attendance.clock_out %}{{ attendance.clock_out|time:"H:i" }}{% else %}--:--{% endif %}
+                        </p>
+                    </div>
+                    <div class="ml-auto">
+                        {% if attendance.clock_out %}
+                            <span class="text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded leading-none uppercase">Selesai</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if attendance.status == 'late' and not attendance.is_late_excused %}
+            <div class="mt-4 p-3 bg-rose-50 border border-rose-100 rounded-lg flex items-start gap-2">
+                <svg class="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <div class="text-[10px] text-rose-700 leading-relaxed font-semibold">
+                    Status keterlambatan Anda sedang menunggu tinjauan atasan agar tidak dihitung potongan.
+                </div>
+            </div>
+            {% elif attendance.is_late_excused %}
+            <div class="mt-4 p-3 bg-teal-50 border border-teal-100 rounded-lg flex items-start gap-2">
+                <svg class="w-4 h-4 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="text-[10px] text-teal-700 leading-relaxed font-bold">
+                    Alasan keterlambatan Anda telah disetujui (Dispensasi Aktif). Potongan dibatalkan. ✅
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- History Table Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <!-- Filter Bar -->
+        <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h2 class="text-xs font-bold text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                Riwayat Absensi
+            </h2>
+            
+            <form method="get" class="flex gap-2">
+                <select name="month" class="bg-white border border-slate-200 text-xs font-bold text-slate-600 rounded-lg focus:ring-teal-500 focus:border-teal-500 p-2 outline-none">
+                    <option value="1" {% if selected_month == 1 %}selected{% endif %}>Januari</option>
+                    <option value="2" {% if selected_month == 2 %}selected{% endif %}>Februari</option>
+                    <option value="3" {% if selected_month == 3 %}selected{% endif %}>Maret</option>
+                    <option value="4" {% if selected_month == 4 %}selected{% endif %}>April</option>
+                    <option value="5" {% if selected_month == 5 %}selected{% endif %}>Mei</option>
+                    <option value="6" {% if selected_month == 6 %}selected{% endif %}>Juni</option>
+                    <option value="7" {% if selected_month == 7 %}selected{% endif %}>Juli</option>
+                    <option value="8" {% if selected_month == 8 %}selected{% endif %}>Agustus</option>
+                    <option value="9" {% if selected_month == 9 %}selected{% endif %}>September</option>
+                    <option value="10" {% if selected_month == 10 %}selected{% endif %}>Oktober</option>
+                    <option value="11" {% if selected_month == 11 %}selected{% endif %}>November</option>
+                    <option value="12" {% if selected_month == 12 %}selected{% endif %}>Desember</option>
+                </select>
+                <select name="year" class="bg-white border border-slate-200 text-xs font-bold text-slate-600 rounded-lg focus:ring-teal-500 focus:border-teal-500 p-2 outline-none">
+                    <option value="2024" {% if selected_year == 2024 %}selected{% endif %}>2024</option>
+                    <option value="2025" {% if selected_year == 2025 %}selected{% endif %}>2025</option>
+                    <option value="2026" {% if selected_year == 2026 %}selected{% endif %}>2026</option>
+                </select>
+                <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-xs px-3 py-2 transition-colors">
+                    Filter
+                </button>
+            </form>
+        </div>
+
+        <!-- Table Data -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-100">
+                        <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</th>
+                        <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bagian</th>
+                        <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal & Hari</th>
+                        <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Check In</th>
+                        <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Check Out</th>
+                        <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 text-[13px]">
+                    {% for item in history %}
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-5 py-3">
+                            <span class="font-bold text-slate-700">{{ item.employee.full_name }}</span>
+                        </td>
+                        <td class="px-5 py-3 whitespace-nowrap">
+                            <span class="text-slate-500 font-medium">
+                                {% if item.employee.department %}{{ item.employee.department.name }}{% else %}-{% endif %}
+                            </span>
+                        </td>
+                        <td class="px-5 py-3 whitespace-nowrap">
+                            <span class="font-bold text-slate-600">{{ item.date|date:"l" }}</span>, 
+                            <span class="text-slate-500">{{ item.date|date:"d M Y" }}</span>
+                        </td>
+                        <td class="px-5 py-3 text-center">
+                            {% if item.clock_in %}
+                                <span class="bg-teal-50 border border-teal-100 text-teal-700 px-2.5 py-1 rounded-md font-mono font-bold">{{ item.clock_in|time:"H:i" }}</span>
+                            {% else %}
+                                <span class="text-slate-300">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3 text-center">
+                            {% if item.clock_out %}
+                                <span class="bg-rose-50 border border-rose-100 text-rose-700 px-2.5 py-1 rounded-md font-mono font-bold">{{ item.clock_out|time:"H:i" }}</span>
+                            {% else %}
+                                <span class="text-slate-300">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3">
+                            {% if item.status == 'present' %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold text-teal-700 bg-teal-50 uppercase tracking-wide">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0"></span> Tepat Waktu
+                                </span>
+                            {% elif item.status == 'late' %}
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold {% if item.is_late_excused %}text-teal-700 bg-teal-50{% else %}text-rose-700 bg-rose-50{% endif %} uppercase tracking-wide">
+                                        <span class="w-1.5 h-1.5 rounded-full {% if item.is_late_excused %}bg-teal-500{% else %}bg-rose-500{% endif %} shrink-0"></span> 
+                                        {% if item.is_late_excused %}Dispensasi{% else %}Terlambat{% endif %}
+                                    </span>
+                                    {% if not item.is_late_excused %}
+                                        <span class="text-[10px] font-bold text-slate-400 hidden sm:inline">- {{ item.late_minutes }}m</span>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold text-slate-600 bg-slate-100 uppercase tracking-wide">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0"></span> {{ item.get_status_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-5 py-12 text-center text-slate-400">
+                            <span class="block mb-2 text-2xl">📭</span>
+                            <p class="text-sm">Belum ada riwayat absensi pada bulan yang dipilih.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes scanline {
+        0% { transform: translateY(0); opacity: 1; }
+        50% { transform: translateY(180px); opacity: 0.5; }
+        100% { transform: translateY(0); opacity: 1; }
+    }
+    .scanner-line {
+        animation: scanline 3s linear infinite;
+    }
+</style>
+
+<script>
+    // Konfigurasi jam masuk (ambil dari backend)
+    const ruleStartTime = "{{ rule.start_time|time:'H:i' }}";
+    const gracePeriod = parseInt("{{ rule.grace_period }}");
+
+    // Init Kamera untuk UI AI Face Recognition
+    async function initKamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+            document.getElementById('webcam').srcObject = stream;
+            document.getElementById('camera-status').innerText = 'Wajah Siap Dipindai | GPS Aktif';
+            document.getElementById('camera-status').style.color = '#5eead4';
+        } catch (err) {
+            document.getElementById('camera-status').innerText = 'Kamera Tidak Tersedia';
+            document.getElementById('camera-status').style.color = '#f43f5e';
+            console.error("Webcam Error:", err);
+        }
+    }
+
+    // Panggil initKamera jika kotak face UI ada
+    if(document.getElementById('webcam')) {
+        initKamera();
+    }
+
+    function handleClockIn() {
+        const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+        
+        const [h, m] = ruleStartTime.split(':').map(Number);
+        const limitTime = h * 60 + m + gracePeriod;
+
+        if (currentTime > limitTime) {
+            // Tampilkan form alasan jika telat
+            document.getElementById('late-justification').classList.remove('hidden');
+            // Scroll ke form alasan
+            document.getElementById('late-justification').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            // Langsung submit jika on-time
+            document.getElementById('checkin-form').submit();
+        }
+    }
+
+    function updateClock() {
+        const now = new Date();
+        const optionsDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        document.getElementById('liveDate').innerText = now.toLocaleDateString('id-ID', optionsDate);
+        
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('liveClock').innerText = `${h}:${m}:${s}`;
+    }
+    
+    setInterval(updateClock, 1000);
+    updateClock();
+</script>
+{% endblock %}

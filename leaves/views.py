@@ -63,17 +63,29 @@ from employees.models import Employee
 @hr_or_admin_required
 def leave_balance_list(request):
     from django.utils import timezone
-    current_year = timezone.now().year
+    from django.db.models import Q
+    from django.core.paginator import Paginator
     
-    # Ambil semua karyawan aktif
-    employees = Employee.objects.filter(is_active=True).order_by('full_name')
+    today = timezone.now().date()
+    current_year = today.year
+    
+    search_query = request.GET.get('q', '').strip()
+    
+    # Ambil semua karyawan aktif (Kecuali Admin/Superuser)
+    employees = Employee.objects.filter(is_active=True).exclude(user__is_superuser=True).order_by('full_name')
+    
+    if search_query:
+        employees = employees.filter(
+            Q(full_name__icontains=search_query) | 
+            Q(npp__icontains=search_query) |
+            Q(department__name__icontains=search_query)
+        )
     
     # Ambil saldo untuk tahun ini
     balances = LeaveBalance.objects.filter(year=current_year).select_related('employee')
     balance_dict = {b.employee_id: b for b in balances}
     
-    # Cek eligibilitas tiap karyawan (Hanya untuk tampilan info di tabel)
-    one_year_ago = timezone.now().date() - timezone.timedelta(days=365)
+    one_year_ago = today - timezone.timedelta(days=365)
     eligible_types = ['tetap', 'kontrak', 'pkwt', 'pkwtt']
     
     emp_data = []
@@ -82,15 +94,42 @@ def leave_balance_list(request):
             emp.employment_type in eligible_types and 
             emp.join_date and emp.join_date <= one_year_ago
         )
+        
+        # Hitung durasi masa kerja
+        tenure_str = "—"
+        if emp.join_date:
+            delta_days = (today - emp.join_date).days
+            years  = delta_days // 365
+            months = (delta_days % 365) // 30
+            if years > 0 and months > 0:
+                tenure_str = f"{years} Thn {months} Bln"
+            elif years > 0:
+                tenure_str = f"{years} Tahun"
+            else:
+                tenure_str = f"{months} Bulan"
+        
         emp_data.append({
             'employee': emp,
             'balance': balance_dict.get(emp.id),
-            'is_eligible': is_eligible
+            'is_eligible': is_eligible,
+            'tenure': tenure_str,
         })
         
+    per_page = request.GET.get('per_page', '10')
+    try:
+        per_page = int(per_page)
+    except ValueError:
+        per_page = 10
+        
+    paginator = Paginator(emp_data, per_page)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+        
     return render(request, 'leaves/balance_list.html', {
-        'emp_data': emp_data, 
-        'current_year': current_year
+        'page_obj': page_obj, 
+        'current_year': current_year,
+        'search_query': search_query,
+        'per_page': per_page,
     })
 
 @hr_or_admin_required
@@ -105,7 +144,7 @@ def leave_balance_reset_all(request):
             is_active=True,
             employment_type__in=eligible_types,
             join_date__lte=one_year_ago
-        )
+        ).exclude(user__is_superuser=True)
         
         count = 0
         for emp in employees:
@@ -116,8 +155,7 @@ def leave_balance_reset_all(request):
             )
             if not created:
                 balance.total_balance = 12
-                # used_balance biasanya tidak direset paksa ke 0 jika sudah berjalan, 
-                # tapi user minta 'reset semua cuti menjadi 12'. Kita asumsikan reset jatah awal.
+                balance.used_balance = 0
                 balance.save()
             count += 1
             
@@ -126,7 +164,7 @@ def leave_balance_reset_all(request):
 
 @hr_or_admin_required
 def leave_balance_create(request):
-    employees = Employee.objects.filter(is_active=True).order_by('full_name')
+    employees = Employee.objects.filter(is_active=True).exclude(user__is_superuser=True).order_by('full_name')
     selected_employee_id = request.GET.get('employee_id')
     
     if request.method == 'POST':
@@ -172,5 +210,67 @@ def leave_balance_delete(request, pk):
         balance.delete()
         messages.success(request, 'Data saldo cuti berhasil dihapus.')
         return redirect('leave_balance_list')
-    # Use generic confirmation or simple form if needed. We'll add a simple confirmation in template.
     return render(request, 'leaves/balance_confirm_delete.html', {'balance': balance})
+
+# --- Self Service (Employee Side) ---
+from django.contrib.auth.decorators import login_required
+from .models import LeaveType
+
+@login_required
+def leave_history(request):
+    employee = getattr(request.user, 'employee', None)
+    if not employee:
+        messages.error(request, 'Profil karyawan tidak ditemukan untuk akun ini.')
+        return redirect('dashboard')
+    
+    from django.utils import timezone
+    current_year = timezone.now().year
+    
+    leaves = LeaveRequest.objects.filter(employee=employee).select_related('leave_type').order_by('-created_at')
+    balance = LeaveBalance.objects.filter(employee=employee, year=current_year).first()
+    
+    context = {
+        'leaves': leaves,
+        'balance': balance,
+        'current_year': current_year,
+    }
+    return render(request, 'leaves/history.html', context)
+
+@login_required
+def leave_apply(request):
+    employee = getattr(request.user, 'employee', None)
+    if not employee:
+        messages.error(request, 'Hanya karyawan yang bisa mengajukan cuti.')
+        return redirect('dashboard')
+
+    leave_types = LeaveType.objects.filter(is_active=True).order_by('name')
+    
+    if request.method == 'POST':
+        leave_type_id = request.POST.get('leave_type')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        reason = request.POST.get('reason')
+        attachment = request.FILES.get('attachment')
+        
+        # Hitung durasi (sederhana tanpa memotong libur untuk sementara)
+        from datetime import datetime
+        d1 = datetime.strptime(start_date, '%Y-%m-%d')
+        d2 = datetime.strptime(end_date, '%Y-%m-%d')
+        duration = (d2 - d1).days + 1
+        
+        if duration <= 0:
+            messages.error(request, 'Tanggal selesai harus setelah tanggal mulai.')
+        else:
+            LeaveRequest.objects.create(
+                employee=employee,
+                leave_type_id=leave_type_id,
+                start_date=start_date,
+                end_date=end_date,
+                duration_days=duration,
+                reason=reason,
+                attachment=attachment
+            )
+            messages.success(request, 'Pengajuan cuti berhasil dikirim dan menunggu approval.')
+            return redirect('leave_history')
+
+    return render(request, 'leaves/apply_form.html', {'leave_types': leave_types})
